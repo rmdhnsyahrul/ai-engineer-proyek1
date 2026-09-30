@@ -1,0 +1,23 @@
+[project]
+name = "ai-engineer-proyek1"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Syahrul Romadhon", email = "rmdhn.syahrul@gmail.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.141.1",
+    "openai>=3.20.0",
+    "pydantic>=2.13.5",
+    "python-dotenv>=1.2.3",
+    "uvicorn>=0.54.0",
+]
+
+[project.scripts]
+ai-engineer-proyek1 = "ai_engineer_proyek1:main"
+
+[build-system]
+requires = ["uv_build>=0.12.20,<0.13.0"]
+build-backend = "uv_build"
