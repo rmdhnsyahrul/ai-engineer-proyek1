@@ -1,13 +1,120 @@
 import os
-from fastapi import FastAPI
-from dotenv import load_dotenv
+import json
+import logging
+from collections.abc import AsyncGenerator
 from pydantic import BaseModel
-from openai import OpenAI
+
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+from openai import AsyncOpenAI
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+app = FastAPI()
+
+logger = logging.getLogger(__name__)
+  
+client = AsyncOpenAI(
+	api_key=os.getenv("OPENROUTER_API_KEY"),
+	base_url="https://openrouter.ai/api/v1",
+)
 
 class Chat(BaseModel):
   message: str
 
-app = FastAPI()
+def format_sse(
+	data: dict,
+	event: str | None = None,
+) -> str:
+	"""
+	Format a dictionary as a Server-Sent Event.
+
+	Example:
+		event: message
+		data: {"content": "Hello"}
+
+	"""
+	message = ""
+
+	if event:
+		message += f"event: {event}\n"
+
+	message += f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+	return message
+
+
+async def stream_chat(
+  prompt: str,
+) -> AsyncGenerator[str, None]:
+	"""
+	Stream chat completion chunks and convert them to SSE messages.
+	"""
+
+	try:
+		response = await client.chat.completions.create(
+			model="openrouter/free",
+			messages=[
+				{
+					"role": "system",
+					"content": (
+						"Anda adalah asisten AI yang ahli, "
+						"singkat, dan jelas."
+					),
+				},
+				{
+					"role": "user",
+					"content": prompt,
+				},
+			],
+			stream=True,
+		)
+
+		async for chunk in response:
+			if not chunk.choices:
+				continue
+
+			delta = chunk.choices[0].delta
+
+			# Ignore reasoning tokens.
+			#
+			# Your provider currently sends reasoning separately:
+			# delta.reasoning = "..."
+			#
+			# while actual answer appears in:
+			# delta.content = "..."
+			content = delta.content
+
+			if content:
+				yield format_sse(
+					{
+							"content": content,
+					},
+					event="message",
+				)
+
+			# The final chunk may contain finish_reason.
+			finish_reason = chunk.choices[0].finish_reason
+
+			if finish_reason:
+				yield format_sse(
+					{
+							"finish_reason": finish_reason,
+					},
+					event="done",
+				)
+
+	except Exception as exc:
+		logger.exception("Error while streaming chat completion")
+
+		yield format_sse(
+			{
+				"error": str(exc),
+			},
+			event="error",
+		)
 
 @app.get("/")
 async def root():
@@ -21,34 +128,14 @@ async def predict_prompt(prompt: Chat):
     "ai_response": f"Anda mengirim prompt `{prompt.message}`. Backend Python berhasil memprosesnya."
   }
 
-load_dotenv()
-
-client = OpenAI(
-  base_url="https://openrouter.ai/api/v1",
-  api_key=os.environ.get("OPENROUTER_API_KEY")
-)
-
 @app.post("/chat/stream")
 async def chat_stream(prompt: Chat):
-  response = client.chat.completions.create(
-    model="nvidia/nemotron-3.5-lightning:free",
-    messages=[
-      {
-        "role": "user",
-        "content": prompt.message
-      }
-    ],
-    extra_body={"reasoning": {"enabled": True}}
-  )
-
-  # Extract assistant message
-  response = response.choices[0].message
-
-  return {
-    "user_prompt": prompt.message,
-    "ai_response": {
-      "role": "assistant",
-      "content": response.content,
-      "reasonings_detail": response.reasoning_details
-    }
-  }
+    return StreamingResponse(
+			stream_chat(prompt.message),
+			media_type="text/event-stream",
+			headers={
+				"Cache-Control": "no-cache",
+				"Connection": "keep-alive",
+				"X-Accel-Buffering": "no",
+			},
+    )
