@@ -1,0 +1,5 @@
+id_tender,nama_paket,pagu_anggaran,pemenang,status
+TND-01,Pengadaan Laptop Core i7,1500000000,PT Maju Jaya,Selesai
+TND-02,Pembangunan Gedung Arsip,5400000000,PT Bina Karya,Gagal
+TND-03,Pengadaan Server Cloud,2300000000,PT Data Siber,Selesai
+TND-04,Renovasi Ruang Rapat,850000000,PT Interior Indah,Selesai
