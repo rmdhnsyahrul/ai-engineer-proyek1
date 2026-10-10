@@ -27,6 +27,8 @@ class GitStandardsIntegrationTests(unittest.TestCase):
 
             baseline_file = repository / ".commit-documentation-baseline"
             self.assertFalse(baseline_file.exists())
+            self.assertTrue((repository / "docs" / "commit-convention.md").exists())
+            self.assertTrue((repository / "docs" / "commit-workflow.md").exists())
 
             run("git", "config", "user.name", "Test User", cwd=repository)
             run("git", "config", "user.email", "test@example.com", cwd=repository)

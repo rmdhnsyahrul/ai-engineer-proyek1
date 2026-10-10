@@ -115,7 +115,9 @@ verified. Set up the local template and validation hook with:
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the workflow and
 [`docs/commit-convention.md`](docs/commit-convention.md) for the complete
-specification and examples.
+specification and examples. The
+[`start-to-end commit workflow`](docs/commit-workflow.md) includes setup,
+recovery, CI, and Mermaid diagrams.
 
 ## Build
 

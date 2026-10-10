@@ -39,6 +39,9 @@ copy_standard \
   "$SOURCE_ROOT/docs/commit-convention.md" \
   "$TARGET_ROOT/docs/commit-convention.md"
 copy_standard \
+  "$SOURCE_ROOT/docs/commit-workflow.md" \
+  "$TARGET_ROOT/docs/commit-workflow.md"
+copy_standard \
   "$SOURCE_ROOT/.github/workflows/commit-lint.yml" \
   "$TARGET_ROOT/.github/workflows/commit-lint.yml"
 

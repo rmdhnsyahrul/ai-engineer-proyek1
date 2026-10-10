@@ -48,7 +48,9 @@ Roadmap: Agent service and streaming
 The required sections are `Why:`, `What changed:`, and `How to verify:`.
 `Notes / Tradeoffs:` and trailers are optional. See
 [`docs/commit-convention.md`](docs/commit-convention.md) for the complete
-specification.
+specification. Follow
+[`docs/commit-workflow.md`](docs/commit-workflow.md) for the start-to-end
+workflow and Mermaid diagrams of local and CI validation.
 
 ## Commit boundaries
 

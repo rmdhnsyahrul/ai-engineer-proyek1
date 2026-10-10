@@ -14,6 +14,9 @@ File contents describe the current state. Commit history explains how and why
 that state evolved. Both are needed; commit messages do not replace source
 documentation or tests.
 
+For installation, daily commands, failure recovery, and Mermaid diagrams of
+the complete lifecycle, see the [start-to-end commit workflow](commit-workflow.md).
+
 ## Subject
 
 Use this form:
