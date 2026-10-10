@@ -1,0 +1,8 @@
+repos:
+  - repo: local
+    hooks:
+      - id: documentation-grade-commit-message
+        name: validate documentation-grade commit message
+        entry: python3 scripts/check_commit_message.py
+        language: system
+        stages: [commit-msg]

@@ -102,3 +102,33 @@ Run the offline unit tests (no OpenRouter request is made):
 ```bash
 uv run python -m unittest discover -s tests -v
 ```
+
+## Commit documentation standard
+
+This repository treats commits as durable development context. Every regular
+commit must explain why the change exists, what changed, and how it was
+verified. Set up the local template and validation hook with:
+
+```bash
+./scripts/apply-git-standards.sh .
+```
+
+See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the workflow and
+[`docs/commit-convention.md`](docs/commit-convention.md) for the complete
+specification and examples.
+
+## Build
+
+Build a distributable package with:
+
+```bash
+uv build
+```
+
+The `ai-engineer-proyek1` console command still runs the package starter
+greeting. Use the module or Uvicorn commands above to run the agent.
+
+## References
+
+- [LangChain ChatOpenRouter integration](https://docs.langchain.com/oss/python/integrations/chat/openrouter)
+- [OpenRouter API quickstart](https://openrouter.ai/docs/quickstart)

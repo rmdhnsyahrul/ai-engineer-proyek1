@@ -1,0 +1,21 @@
+# <type>(<scope>): <imperative summary, maximum 72 characters>
+
+Why:
+# Explain the problem, motivation, or roadmap context.
+
+What changed:
+# - Describe the important behavior or architecture changes.
+# - Mention notable files or modules when useful.
+
+How to verify:
+# - `command` -> expected result
+
+Notes / Tradeoffs:
+# - Record limitations, decisions, or follow-up work. Optional.
+
+# Roadmap: <milestone name>                       Optional trailer
+# Refs: <issue, pull request, ADR, or URL>        Optional trailer
+#
+# Allowed types: feat, fix, refactor, perf, docs, test, build, ci,
+#                chore, revert
+# Common scopes: api, agent, rag, streaming, config, deps, docs, tests
