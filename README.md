@@ -1,24 +1,20 @@
 # AI Engineer Proyek 1
 
-A prototype data-analysis agent that uses a language model hosted through
-[OpenRouter](https://openrouter.ai/) to analyze a CSV file. The agent exposes a
-CSV analysis tool that reads a file with pandas and returns descriptive
-statistics; the model can call that tool in response to a user request.
-
-The current example analyzes `data/transaksi_pengadaan.csv`. This is a
-command-line prototype: a FastAPI service and a configurable interactive
-interface are not implemented yet.
+A streaming data-analysis agent that uses a language model hosted through
+[OpenRouter](https://openrouter.ai/) to analyze CSV files. The agent exposes a
+pandas-based CSV analysis tool and is available through both a command-line
+example and a FastAPI Server-Sent Events (SSE) endpoint.
 
 ## How it works
 
-1. `agent_analyst.py` loads environment variables from `.env`.
-2. LangChain's `ChatOpenRouter` client is configured to use the
-   `openrouter/free` model.
-3. The model receives a request to analyze the example CSV and can call the
+1. `agent_core.py` configures LangChain's `ChatOpenRouter` client and the
    `analyze_csv` tool.
-4. The tool reads the CSV with pandas and returns `DataFrame.describe()`
-   output. That result is sent back to the model, which prints its final
-   response.
+2. The model decides whether to call the tool based on the user's prompt.
+3. Tool calls and results are added to the message history using LangChain's
+   tool-message protocol.
+4. The agent continues until the model returns a final answer or reaches the
+   maximum number of iterations.
+5. `main.py` exposes each token and tool event as an SSE message.
 
 ## Requirements
 
@@ -38,37 +34,71 @@ Create a `.env` file in the repository root and add your API key:
 
 ```dotenv
 OPENROUTER_API_KEY=your-openrouter-api-key
+OPENROUTER_API_BASE=https://openrouter.ai/api/v1
+AGENT_MODEL=openrouter/free
 ```
 
-`OPENROUTER_API_BASE` can also be set if you need a custom API endpoint; it is
-not required for the default OpenRouter setup. Do not commit `.env` or share
-your API key.
+`AGENT_MODEL` is optional and defaults to `openrouter/free`. Do not commit
+`.env` or share your API key.
 
 ## Run
 
-Run the CSV analysis example from the repository root:
+### Command-line example
+
+Run the fixed CSV analysis example from the repository root:
 
 ```bash
 uv run python -m ai_engineer_proyek1.agent_analyst
 ```
 
 The example expects `data/transaksi_pengadaan.csv` to exist at that relative
-path. It prints the model's tool call, the CSV summary returned by the tool,
-and the model's final response. The CSV path is currently set in the module;
-it is not yet a command-line argument.
+path. It prints tool calls, tool results, and the streamed final response.
 
-## Build
+### FastAPI streaming service
 
-Build a distributable package with:
+Start the development server:
 
 ```bash
-uv build
+uv run uvicorn ai_engineer_proyek1.main:app --reload
 ```
 
-The `ai-engineer-proyek1` console command currently runs a starter greeting,
-not the analysis agent. Use the module command above to run the prototype.
+Send a request with `curl`. The `-N` option disables response buffering so
+that events appear as soon as they are emitted:
 
-## References
+```bash
+curl -N -X POST http://127.0.0.1:8000/agent/stream \
+  -H 'Content-Type: application/json' \
+  -d '{"message":"Analyze the CSV file at data/transaksi_pengadaan.csv"}'
+```
 
-- [LangChain ChatOpenRouter integration](https://docs.langchain.com/oss/python/integrations/chat/openrouter)
-- [OpenRouter API quickstart](https://openrouter.ai/docs/quickstart)
+The stream can contain the following named events:
+
+- `tool_call`: the tool selected by the model and its arguments.
+- `tool_result`: the result returned by the tool.
+- `token`: a piece of the model's streamed response.
+- `done`: the agent completed successfully.
+- `error`: the agent or model returned an error.
+
+Example event sequence:
+
+```text
+event: tool_call
+data: {"name": "analyze_csv", "args": {"file_path": "data/transaksi_pengadaan.csv"}}
+
+event: token
+data: {"content": "The CSV contains..."}
+
+event: done
+data: {"iterations": 2}
+```
+
+Interactive API documentation is available at
+`http://127.0.0.1:8000/docs` while the server is running.
+
+## Test
+
+Run the offline unit tests (no OpenRouter request is made):
+
+```bash
+uv run python -m unittest discover -s tests -v
+```
